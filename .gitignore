@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+node_modules/
+dist/
+ml/artifacts/*
+!ml/artifacts/.gitkeep
+dataset/raw/*
+!dataset/raw/.gitkeep
+.idea/
+.vscode/
