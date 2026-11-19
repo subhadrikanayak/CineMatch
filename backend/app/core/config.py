@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     W_CONTENT: float = 0.5
     W_COLLAB: float = 0.3
     W_POPULARITY: float = 0.2
+    W_PREFERENCE: float = 0.15
     MMR_LAMBDA: float = 0.7
 
     CORS_ORIGINS: str = "http://localhost:5173"
