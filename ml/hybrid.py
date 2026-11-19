@@ -91,7 +91,8 @@ class HybridRecommender:
     # ---------- main entry ----------
     def recommend(self, signals: UserSignals, candidate_ids=None, k: int = 20,
                   weights: dict | None = None, diversify: bool = True,
-                  mmr_lambda: float | None = None, min_rating: float | None = None):
+                  mmr_lambda: float | None = None, min_rating: float | None = None,
+                  seed_text: str | None = None):
         """candidate_ids must already satisfy every hard filter (language, rating,
         year...). The hybrid score only ranks them and never widens the set."""
         excluded = (set(signals.seen_ids) | set(signals.ratings)
@@ -103,6 +104,14 @@ class HybridRecommender:
         idx = np.array([self.pos[m] for m in ids])
 
         profile = self._profile(signals)
+        if seed_text:
+            seed = self.content.profile_from_text(seed_text)
+            if seed is not None:
+                if profile is None:
+                    profile = seed
+                else:
+                    blended = 0.35 * profile + 0.65 * seed
+                    profile = blended / np.linalg.norm(blended)
         content_raw = self.content.scores(profile, idx) if profile is not None else None
 
         n_ratings = len(signals.ratings)
