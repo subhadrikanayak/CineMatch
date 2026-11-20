@@ -5,7 +5,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.core.config import settings
-from backend.app.routers import auth, compare, mood, movies, people, recommendations, search, similar
+from backend.app.routers import (
+    admin, auth, compare, feedback, mood, movies, people, ratings, recommendations,
+    search, similar, users, watchlist,
+)
 from backend.app.services.recommender_service import load_engine
 
 logging.basicConfig(
@@ -32,7 +35,8 @@ app.add_middleware(
 
 API = "/api/v1"
 for r in (auth.router, movies.router, people.router, recommendations.router,
-          mood.router, similar.router, search.router, compare.router):
+          mood.router, similar.router, search.router, compare.router,
+          ratings.router, watchlist.router, feedback.router, users.router, admin.router):
     app.include_router(r, prefix=API)
 
 
