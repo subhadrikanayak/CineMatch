@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { color-scheme: dark; }
+  body {
+    @apply text-ink antialiased;
+    background-color: #120a1f;
+    background-image:
+      radial-gradient(60rem 40rem at 8% -10%, rgba(139, 92, 246, 0.35), transparent 60%),
+      radial-gradient(50rem 40rem at 95% 8%, rgba(244, 63, 94, 0.28), transparent 60%),
+      radial-gradient(60rem 50rem at 50% 115%, rgba(168, 85, 247, 0.25), transparent 60%);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+  h1, h2, h3 { @apply font-serif tracking-tight; }
+  ::selection { background: #b4607f; color: #ffffff; }
+}
+
+@layer components {
+  .container-page { @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8; }
+  .card {
+    @apply rounded-xl border border-line bg-surface shadow-soft backdrop-blur-md;
+  }
+  .input {
+    @apply w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink backdrop-blur-sm
+           placeholder:text-mute focus:border-gold-dim focus:outline-none focus:ring-1 focus:ring-gold-dim;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-lg bg-gold px-4 py-2 text-sm font-medium
+           text-canvas transition-colors hover:bg-gold-soft disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-lg border border-line bg-surface px-4 py-2 text-sm
+           text-ink backdrop-blur-sm transition-colors hover:border-gold-dim hover:text-gold;
+  }
+}
