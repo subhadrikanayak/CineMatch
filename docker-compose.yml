@@ -13,5 +13,41 @@ services:
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     volumes:
       - cinematch_mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: cinematch-backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      MYSQL_HOST: db
+      MYSQL_PORT: "3306"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - ml_artifacts:/app/ml/artifacts
+
+  frontend:
+    profiles: ["app"]
+    build: ./frontend
+    container_name: cinematch-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
 volumes:
   cinematch_mysql:
+  ml_artifacts:

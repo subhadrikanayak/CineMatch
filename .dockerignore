@@ -1,0 +1,8 @@
+.venv
+.git
+.env
+node_modules
+frontend
+dataset
+ml/artifacts
+**/__pycache__

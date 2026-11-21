@@ -13,7 +13,7 @@ python-multipart
 numpy
 pandas
 scipy
-scikit-learn
+scikit-learn==1.5.2
 joblib
-sentence-transformers
+# sentence-transformers
 pytest
