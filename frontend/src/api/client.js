@@ -8,7 +8,8 @@ export const tokenStore = {
   clear: () => localStorage.removeItem(KEY),
 }
 
-const api = axios.create({ baseURL: '/api/v1' })
+// indexes: null -> ?language=ml&language=te (the format FastAPI expects for lists)
+const api = axios.create({ baseURL: '/api/v1', paramsSerializer: { indexes: null } })
 
 api.interceptors.request.use((cfg) => {
   const t = tokenStore.get()
@@ -19,7 +20,6 @@ api.interceptors.request.use((cfg) => {
 api.interceptors.response.use(
   (r) => r,
   (err) => {
-    // An expired token: clear it and tell the app to log out.
     if (err.response?.status === 401 && tokenStore.get()) {
       tokenStore.clear()
       window.dispatchEvent(new Event('auth:logout'))
