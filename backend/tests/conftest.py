@@ -5,6 +5,10 @@ os.environ.setdefault("MYSQL_USER", "test")
 os.environ.setdefault("MYSQL_PASSWORD", "test")
 os.environ.setdefault("MYSQL_DATABASE", "test")
 os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-for-pytest-only-0123456789")
+os.environ["W_CONTENT"] = "0.5"
+os.environ["W_COLLAB"] = "0.3"
+os.environ["W_POPULARITY"] = "0.2"
+os.environ["W_PREFERENCE"] = "0.15"
 
 import pytest
 from fastapi.testclient import TestClient

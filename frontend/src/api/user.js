@@ -12,3 +12,7 @@ export const unmarkWatched = (id) => api.delete(`/watch-history/${id}`)
 export const react = (id, type) =>
   api.post('/feedback', { movie_id: id, feedback_type: type }).then(data)
 export const clearReaction = (id) => api.delete(`/feedback/${id}`)
+export const listComments = (id) => api.get(`/feedback/movie/${id}`).then(data)
+export const addComment = (id, comment) =>
+  api.post('/feedback', { movie_id: id, feedback_type: 'comment', comment }).then(data)
+export const deleteComment = (commentId) => api.delete(`/feedback/comment/${commentId}`)

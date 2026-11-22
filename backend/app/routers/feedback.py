@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
@@ -32,6 +32,32 @@ def give_feedback(body: FeedbackIn, db: Session = Depends(get_db),
     db.refresh(row)
     return FeedbackOut(id=row.id, movie_id=row.movie_id, feedback_type=row.feedback_type,
                        comment=row.comment, created_at=row.created_at)
+
+
+@router.get("/movie/{movie_id}")
+def movie_comments(movie_id: int, limit: int = Query(30, ge=1, le=100),
+                   db: Session = Depends(get_db)):
+    """Public list of comments on a movie, newest first."""
+    rows = db.execute(
+        select(RecommendationFeedback, User.username)
+        .join(User, User.id == RecommendationFeedback.user_id)
+        .where(RecommendationFeedback.movie_id == movie_id,
+               RecommendationFeedback.feedback_type == "comment")
+        .order_by(RecommendationFeedback.id.desc()).limit(limit)).all()
+    return [{"id": f.id, "user_id": f.user_id, "username": name,
+             "comment": f.comment, "created_at": f.created_at} for f, name in rows]
+
+
+@router.delete("/comment/{comment_id}", status_code=204)
+def delete_comment(comment_id: int, db: Session = Depends(get_db),
+                   user: User = Depends(get_current_user)):
+    """You can delete only your own comments."""
+    row = db.get(RecommendationFeedback, comment_id)
+    if not row or row.feedback_type != "comment" or row.user_id != user.id:
+        raise HTTPException(404, "Comment not found")
+    db.delete(row)
+    db.commit()
+    return Response(status_code=204)
 
 
 @router.delete("/{movie_id}", status_code=204)

@@ -15,11 +15,28 @@ const LANGUAGES = [
   { code: 'kn', name: 'Kannada' },
 ]
 
-function Section({ title, subtitle, children }) {
+
+const FEATURED = [
+  ['meiyazhagan'],
+  ['maharshi'],
+  ['hi nanna'],
+  ['12th fail'],
+  ['baththa'],     
+  ['irumudi'],    
+]
+
+function Section({ title, subtitle, children, more }) {
   return (
-    <section className="container-page mt-14">
-      <h2 className="text-2xl text-ink">{title}</h2>
-      {subtitle && <p className="mt-1 text-sm text-mute">{subtitle}</p>}
+    <section className="container-page mt-8">
+      <div className="flex items-end justify-between">
+        <div>
+          <h2 className="text-2xl text-ink">{title}</h2>
+          {subtitle && <p className="mt-1 text-sm text-mute">{subtitle}</p>}
+        </div>
+        {more && (
+          <Link to={more} className="text-sm text-gold hover:underline">See all</Link>
+        )}
+      </div>
       <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
         {children}
       </div>
@@ -31,30 +48,56 @@ export default function Home() {
   const { user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [q, setQ] = useState('')
-  const [top, setTop] = useState(null)
   const [recs, setRecs] = useState(null)
+  const [latest, setLatest] = useState(null)
+  const [byLang, setByLang] = useState({})
+  const [featured, setFeatured] = useState(null)
   const [error, setError] = useState('')
 
+  // Recommendations depend on the logged-in user.
   useEffect(() => {
     if (authLoading) return
     let cancelled = false
     setError('')
-    setTop(null)
     setRecs(null)
-
-    listMovies({ sort: 'rating', page_size: 12 })
-      .then((d) => !cancelled && setTop(d.items))
-      .catch((e) => !cancelled && setError(errorMessage(e)))
-
     const req = user ? myRecommendations({ k: 12 }) : guestRecommendations({ k: 12 })
     req
       .then((d) => !cancelled && setRecs(d))
       .catch((e) => !cancelled && setError(errorMessage(e)))
-
-    return () => {
-      cancelled = true
-    }
+    return () => { cancelled = true }
   }, [user, authLoading])
+
+  // Browse rows: same for everyone, loaded once.
+  useEffect(() => {
+    let cancelled = false
+    listMovies({ sort: 'year', min_rating: 6.5, page_size: 6 })
+      .then((d) => !cancelled && setLatest(d.items))
+      .catch(() => {})
+    LANGUAGES.forEach((l) => {
+      listMovies({ language: [l.code], sort: 'popularity', page_size: 6 })
+        .then((d) => !cancelled && setByLang((p) => ({ ...p, [l.code]: d.items })))
+        .catch(() => {})
+    })
+    return () => { cancelled = true }
+  }, [])
+
+  // Featured row: look each film up by title. Only a real title match is accepted.
+  useEffect(() => {
+    let cancelled = false
+    Promise.all(
+      FEATURED.map(async (aliases) => {
+        for (const name of aliases) {
+          try {
+            const d = await listMovies({ q: name, page_size: 10 })
+            const hit = d.items.find((m) => m.title.toLowerCase().includes(name))
+            if (hit) return hit
+          } catch (e) { /* try the next spelling */ }
+        }
+        return null
+      }),
+    ).then((list) => !cancelled && setFeatured(list.filter(Boolean)))
+    return () => { cancelled = true }
+  }, [])
 
   const submit = (e) => {
     e.preventDefault()
@@ -65,7 +108,7 @@ export default function Home() {
   return (
     <>
       <section className="border-b border-line">
-        <div className="container-page py-16 text-center sm:py-24">
+        <div className="container-page py-10 text-center sm:py-12">
           <h1 className="text-4xl text-ink sm:text-5xl">
             Find your next <span className="text-gold">Indian film</span>
           </h1>
@@ -108,6 +151,12 @@ export default function Home() {
         </div>
       )}
 
+      {featured && featured.length > 0 && (
+        <Section title="Featured" subtitle="Hand-picked films to start with.">
+          {featured.map((m) => <MovieCard key={m.id} movie={m} />)}
+        </Section>
+      )}
+
       {recs ? (
         <Section
           title={recs.personalised ? 'Recommended for you' : 'Popular picks'}
@@ -130,12 +179,18 @@ export default function Home() {
         !error && <Spinner label="Loading recommendations" />
       )}
 
-      {top && (
-        <Section title="Highly rated" subtitle="The best-rated films in the catalogue.">
-          {top.map((m) => (
-            <MovieCard key={m.id} movie={m} />
-          ))}
+      {latest && latest.length > 0 && (
+        <Section title="New releases" subtitle="Recent films rated 6.5 or higher." more="/discover?sort=year&min_rating=6.5">
+          {latest.map((m) => <MovieCard key={m.id} movie={m} />)}
         </Section>
+      )}
+
+      {LANGUAGES.map((l) =>
+        byLang[l.code]?.length ? (
+          <Section key={l.code} title={`Popular in ${l.name}`} more={`/discover?language=${l.code}`}>
+            {byLang[l.code].map((m) => <MovieCard key={m.id} movie={m} />)}
+          </Section>
+        ) : null,
       )}
     </>
   )

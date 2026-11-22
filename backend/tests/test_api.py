@@ -127,3 +127,15 @@ def test_admin_can_read_stats(client):
     assert r.status_code == 200
     assert r.json()["movies"] == 4
     assert r.json()["engine"]["collaborative_ready"] is False
+def test_comment_flow(client):
+    h = make_user(client)
+    body = {"movie_id": 1, "feedback_type": "comment", "comment": "Great film"}
+    assert client.post(f"{API}/feedback", json=body, headers=h).status_code == 200
+    comments = client.get(f"{API}/feedback/movie/1").json()          # public
+    assert comments[0]["comment"] == "Great film" and comments[0]["username"] == "mahi"
+    empty = {"movie_id": 1, "feedback_type": "comment"}
+    assert client.post(f"{API}/feedback", json=empty, headers=h).status_code == 422
+    other = make_user(client, "bobby")
+    cid = comments[0]["id"]
+    assert client.delete(f"{API}/feedback/comment/{cid}", headers=other).status_code == 404
+    assert client.delete(f"{API}/feedback/comment/{cid}", headers=h).status_code == 204
