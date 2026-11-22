@@ -7,6 +7,7 @@ import * as userApi from '../api/user.js'
 import MovieCard from '../components/MovieCard.jsx'
 import RatingStars from '../components/RatingStars.jsx'
 import Spinner from '../components/Spinner.jsx'
+import Comments from '../components/Comments.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 
 const OFFER = { flatrate: 'Stream', rent: 'Rent', buy: 'Buy', free: 'Free', ads: 'Free with ads' }
@@ -238,6 +239,7 @@ export default function MovieDetail() {
             </div>
           </section>
         )}
+        <Comments movieId={id} />
       </div>
     </div>
   )
